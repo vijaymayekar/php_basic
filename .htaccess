@@ -2,5 +2,5 @@
   RewriteEngine on
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteRule ^ front.php [L]
+  RewriteRule ^ leap_year_front.php [L]
 </IfModule>
