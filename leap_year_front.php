@@ -2,6 +2,8 @@
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Controller\ArgumentResolver;
+use Symfony\Component\HttpKernel\Controller\ControllerResolver;
 use Symfony\Component\Routing\Exception\RouteNotFoundException;
 use Symfony\Component\Routing\Matcher\UrlMatcher;
 use Symfony\Component\Routing\RequestContext;
@@ -15,6 +17,9 @@ $routes = include __DIR__ . '/src/leap_year_app.php';
 $context = new RequestContext();
 $context->fromRequest($request);
 $matcher = new UrlMatcher($routes, $context);
+$controllerResolver = new ControllerResolver();
+$argumentResolver = new ArgumentResolver();
+
 
 function render_template($request) {
 	extract($request->attributes->all(), EXTR_SKIP);
@@ -25,7 +30,10 @@ function render_template($request) {
 
 try {
 	$request->attributes->add($matcher->match($request->getPathInfo()));
-	$response = call_user_func($request->attributes->get('_controller'), $request);
+	$controller = $controllerResolver->getController($request);
+	$arguments = $argumentResolver->getArguments( $request, $controller);
+	print_r($arguments);
+	$response = call_user_func_array($controller, $arguments);
 }
 catch (RouteNotFoundException $e) {
 	$response = new Response('Page not found', 404);
