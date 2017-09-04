@@ -1,1 +1,1 @@
-Hello <?php print $name; ?>
+Hello <?php print htmlspecialchars($name, ENT_QUOTES, 'UTF-8'); ?>
