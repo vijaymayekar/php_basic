@@ -10,24 +10,26 @@ use Symfony\Component\HttpKernel\Controller\ArgumentResolver;
 use Symfony\Component\HttpKernel\Controller\ArgumentResolverInterface;
 use Symfony\Component\HttpKernel\Controller\ControllerResolver;
 use Symfony\Component\HttpKernel\Controller\ControllerResolverInterface;
+use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\Routing\Exception\RouteNotFoundException;
 use Symfony\Component\Routing\Matcher\UrlMatcher;
 use Symfony\Component\Routing\Matcher\UrlMatcherInterface;
 
-class Framework {
+class Framework implements HttpKernelInterface {
 	protected $matcher;
 	protected $controllerResolver;
 	protected $argumentResolver;
+	protected $dispatcher;
 
-	public function __construct(UrlMatcherInterface $matcher, ControllerResolverInterface $controllerResolver, ArgumentResolverInterface $argumentResolver)
+	public function __construct(EventDispatcher $dispatcher, UrlMatcherInterface $matcher, ControllerResolverInterface $controllerResolver, ArgumentResolverInterface $argumentResolver)
 	{
 		$this->matcher = $matcher;
 		$this->controllerResolver = $controllerResolver;
 		$this->argumentResolver = $argumentResolver;
-//		$this->dispatcher = $dispatcher;
+		$this->dispatcher = $dispatcher;
 	}
 
-	public function handle(Request $request) {
+	public function handle(Request $request, $type = HttpKernelInterface::MASTER_REQUEST, $catch = true) {
 		try {
 			$request->attributes->add($this->matcher->match($request->getPathInfo()));
 			$controller = $this->controllerResolver->getController($request);
@@ -41,7 +43,7 @@ class Framework {
 			$response = new Response('An error occured', 500);
 		}
 
-//		$this->dispatcher->dispatch('response', new Event());
+		$this->dispatcher->dispatch('response', new ResponseEvent($response, $request));
 
 		return $response;
 	}
